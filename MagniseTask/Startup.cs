@@ -1,4 +1,5 @@
 using MagniseTask.Data;
+using MagniseTask.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -26,10 +27,12 @@ namespace MagniseTask
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddControllers();
+
             services.AddDbContext<MagniseContext>(options =>
             options.UseSqlServer(Configuration.GetConnectionString("ConnectionString")));
 
-            services.AddControllers();
+            services.AddSingleton<WebSocketPriceService>();
             services.AddSwaggerGen();
         }
 
@@ -44,6 +47,14 @@ namespace MagniseTask
                     c.SwaggerEndpoint("/swagger/v1/swagger.json", "MagniseTask API V1");
                 });
             }
+
+            var webSocketOptions = new WebSocketOptions()
+            {
+                KeepAliveInterval = TimeSpan.FromMinutes(2)
+            };
+
+            app.UseWebSockets(webSocketOptions);
+
 
             app.UseHttpsRedirection();
 
